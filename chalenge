@@ -1,1 +1,54 @@
+#!/bin/bash
+
+#Task 1- Ask the user for the source directory and a backup directory.
+read -p "Enter the source directory: " source_dir
+read -p "Enter the backup directory: " backup_dir
+
+
+#Task 2- Make sure to check if the source directory provided by the user exists.
+if test -d "$source_dir"; then
+    echo "Source directory exists."
+else
+    echo "Source directory does not exist."
+fi
+
+#Task 3 - If the source directory does not exist, display an error message and stop the script.
+if [ ! -d "$source_dir" ]; then
+    echo "Error: Source directory does not exist."
+    exit 1
+fi
+
+#Task 4 - If the source directory exists, create a new backup directory inside the backup directory with a timestamp.
+mkdir -p "$backup_dir"
+mkdir -p "$backup_subdir"
+
+timestamp=$(date +"%Y%m%d_%H%M%S")
+backup_subdir="$backup_dir/backup_$timestamp"
+
+#Task 5 - Copy all the contents from the source directory to the backup directory.
+cp -r "$source_dir"/* "$backup_subdir"
+
+#Task 6 - Include an option for the user to compress the backup directory.
+echo "Do you want to compress the backup? (yes/no):"
+read compress_option
+if [ "$compress_option" = "yes" ]; then
+    zip -r "$backup_dir.zip" "$backup_dir"
+    backup_dir="$backup_dir.zip"
+fi
+
+#Task 7: Keep a log file that records all the backups created
+echo "$(date +"%Y-%m-%d %H:%M:%S") - Backup created: $source_dir -> $backup_subdir" >> backup_log.txt
+
+#Task 8: Create a function to manage old backups, allowing only a specified number of recent backups to be kept.
+
+echo "Enter the number of recent backups to keep:"
+read keep_count
+backup_count=$(ls -d $backup_dir* | wc -l)
+if [ "$backup_count" -gt "$keep_count" ]; then
+    ls -dt $backup_dir* | tail -n +"$((keep_count + 1))" | xargs rm -rf
+fi
+
+echo "Backup completed successfully."
+
+
 
